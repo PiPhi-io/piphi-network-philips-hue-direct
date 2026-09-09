@@ -1,0 +1,362 @@
+{
+  "catalog_version": "1.0",
+  "integration_id": "piphi-network-philips-hue-direct",
+  "coverage_mode": "upstream-surface-accounted-runtime-advertising-gated-by-implementation",
+  "reviewed_at": "2026-09-09",
+  "sources": {
+    "homey_reference": "https://homey.app/en-us/app/com.philips.hue.zigbee/Philips-Hue,-without-the-bridge/",
+    "hue_zigbee": "https://developers.meethue.com/zigbee-3-0-support-in-hue-ecosystem/",
+    "zigbee_zcl": "https://zigbeealliance.org/wp-content/uploads/2019/12/07-5123-06-zigbee-cluster-library-specification.pdf",
+    "piphi_zigbee": "PiPhi Zigbee coordinator runtime contract and capability vocabulary",
+    "core_vocabulary": "PiPhi Network Core capability and behavior contracts"
+  },
+  "groups": [
+    {
+      "id": "runtime-foundation",
+      "status": "implemented",
+      "scope": [
+        "all-configurations"
+      ],
+      "source_refs": [
+        "core_vocabulary"
+      ],
+      "reason": "The scaffold implements configuration lifecycle, connectivity state, refresh dispatch, and a configuration event.",
+      "state": [
+        "connected"
+      ],
+      "events": [
+        "runtime.config.applied"
+      ],
+      "conditions": [
+        "state_matches"
+      ],
+      "actions": [
+        "refresh"
+      ]
+    },
+    {
+      "id": "coordinator-ownership-and-device-discovery",
+      "status": "planned",
+      "scope": [
+        "devices-owned-by-configured-piphi-zigbee-coordinator"
+      ],
+      "source_refs": [
+        "homey_reference",
+        "hue_zigbee",
+        "piphi_zigbee"
+      ],
+      "reason": "The profile runtime must consume coordinator entities, preserve single radio ownership, match model IDs, endpoints, clusters, and firmware variants.",
+      "state": [
+        "coordinator_connected",
+        "zigbee_network_id",
+        "ieee_address",
+        "network_address",
+        "manufacturer_name",
+        "model_id",
+        "software_build_id",
+        "power_source",
+        "endpoint_ids",
+        "input_clusters",
+        "output_clusters",
+        "last_seen_at",
+        "link_quality"
+      ],
+      "events": [
+        "hue.device_discovered",
+        "hue.device_joined",
+        "hue.device_left",
+        "hue.device_online",
+        "hue.device_offline"
+      ],
+      "conditions": [
+        "hue_device_is_online",
+        "hue_model_is",
+        "cluster_is_available"
+      ],
+      "actions": [
+        "refresh_device_interview"
+      ]
+    },
+    {
+      "id": "on-off-and-level-control",
+      "status": "planned",
+      "scope": [
+        "lights-advertising-onoff-or-level-control"
+      ],
+      "source_refs": [
+        "homey_reference",
+        "zigbee_zcl"
+      ],
+      "reason": "On/off, level, transition, startup behavior, identify, and multi-endpoint luminaires require endpoint-scoped negotiation.",
+      "state": [
+        "light_on",
+        "brightness_percent",
+        "remaining_transition_ms",
+        "startup_on_off",
+        "startup_level",
+        "endpoint_light_states"
+      ],
+      "events": [
+        "light.turned_on",
+        "light.turned_off",
+        "light.brightness_changed"
+      ],
+      "conditions": [
+        "light_is_on",
+        "brightness_above",
+        "brightness_below"
+      ],
+      "actions": [
+        "turn_on",
+        "turn_off",
+        "toggle",
+        "set_brightness",
+        "step_brightness",
+        "move_brightness",
+        "stop_brightness",
+        "identify"
+      ]
+    },
+    {
+      "id": "color-temperature-and-color-control",
+      "status": "planned",
+      "scope": [
+        "lights-advertising-color-control"
+      ],
+      "source_refs": [
+        "homey_reference",
+        "zigbee_zcl"
+      ],
+      "reason": "Color temperature, xy, hue/saturation, gamut, color mode, enhanced hue, and transition semantics vary by product.",
+      "state": [
+        "color_mode",
+        "color_temperature_mired",
+        "color_temperature_min_mired",
+        "color_temperature_max_mired",
+        "color_x",
+        "color_y",
+        "hue_deg",
+        "saturation_percent",
+        "enhanced_hue",
+        "color_gamut"
+      ],
+      "events": [
+        "light.color_temperature_changed",
+        "light.color_changed",
+        "light.color_mode_changed"
+      ],
+      "conditions": [
+        "color_mode_is",
+        "color_temperature_between"
+      ],
+      "actions": [
+        "set_color_temperature",
+        "move_color_temperature",
+        "step_color_temperature",
+        "set_xy_color",
+        "set_hue_saturation",
+        "move_hue",
+        "move_saturation",
+        "stop_color"
+      ]
+    },
+    {
+      "id": "gradient-and-multi-endpoint-luminaires",
+      "status": "planned",
+      "scope": [
+        "gradient-and-multi-source-products"
+      ],
+      "source_refs": [
+        "homey_reference"
+      ],
+      "reason": "Gradient segments, upper/lower sources, entertainment-style effects, and product-specific clusters require model fixtures and safe fallbacks.",
+      "state": [
+        "gradient_points",
+        "gradient_mode",
+        "effect",
+        "multi_endpoint_layout"
+      ],
+      "events": [
+        "light.gradient_changed",
+        "light.effect_changed"
+      ],
+      "conditions": [
+        "effect_is_active"
+      ],
+      "actions": [
+        "set_gradient",
+        "set_effect",
+        "stop_effect"
+      ]
+    },
+    {
+      "id": "switches-buttons-and-rotary-controls",
+      "status": "planned",
+      "scope": [
+        "hue-dimmer-tap-smart-button-wall-switch-and-friends-of-hue-models"
+      ],
+      "source_refs": [
+        "homey_reference",
+        "hue_zigbee"
+      ],
+      "reason": "Buttons, holds, releases, rotary steps, wall switch modes, endpoint mapping, and duplicate suppression require model-specific event decoders.",
+      "state": [
+        "button_last_action",
+        "button_last_id",
+        "rotary_direction",
+        "rotary_steps",
+        "switch_mode"
+      ],
+      "events": [
+        "button.pressed",
+        "button.held",
+        "button.released",
+        "rotary.turned"
+      ],
+      "conditions": [
+        "button_is",
+        "rotary_direction_is"
+      ],
+      "actions": []
+    },
+    {
+      "id": "motion-contact-and-environment-sensors",
+      "status": "planned",
+      "scope": [
+        "hue-motion-contact-and-sensor-models"
+      ],
+      "source_refs": [
+        "homey_reference",
+        "zigbee_zcl"
+      ],
+      "reason": "Occupancy, motion, contact, illuminance, temperature, tamper, sensitivity, and presence timeout require advertised-cluster negotiation.",
+      "state": [
+        "motion_detected",
+        "occupancy_detected",
+        "contact_open",
+        "illuminance_lux",
+        "temperature_c",
+        "tamper_detected",
+        "motion_sensitivity",
+        "presence_timeout_seconds"
+      ],
+      "events": [
+        "motion.started",
+        "motion.ended",
+        "contact.opened",
+        "contact.closed",
+        "tamper.detected"
+      ],
+      "conditions": [
+        "motion_is_active",
+        "contact_is_open",
+        "illuminance_below"
+      ],
+      "actions": [
+        "set_motion_sensitivity",
+        "set_presence_timeout"
+      ]
+    },
+    {
+      "id": "battery-health-scenes-and-groups",
+      "status": "planned",
+      "scope": [
+        "battery-devices-and-scene-capable-endpoints"
+      ],
+      "source_refs": [
+        "homey_reference",
+        "zigbee_zcl",
+        "piphi_zigbee"
+      ],
+      "reason": "Battery reporting, power configuration, group membership, scenes, bindings, reporting configuration, and health need coordinator-safe ownership.",
+      "state": [
+        "battery_percent",
+        "battery_voltage_v",
+        "battery_low",
+        "group_ids",
+        "scene_ids",
+        "reporting_health",
+        "binding_health"
+      ],
+      "events": [
+        "battery.low",
+        "battery.recovered",
+        "scene.recalled",
+        "reporting.degraded"
+      ],
+      "conditions": [
+        "battery_below",
+        "scene_is_available",
+        "reporting_is_healthy"
+      ],
+      "actions": [
+        "recall_scene",
+        "store_scene",
+        "remove_scene"
+      ]
+    },
+    {
+      "id": "ota-and-diagnostics",
+      "status": "planned",
+      "scope": [
+        "models-with-ota-support"
+      ],
+      "source_refs": [
+        "hue_zigbee",
+        "piphi_zigbee"
+      ],
+      "reason": "OTA image discovery, transfer status, firmware compatibility, route health, retries, and coordinator recovery must remain coordinator-owned.",
+      "state": [
+        "ota_update_available",
+        "ota_progress_percent",
+        "ota_state",
+        "route_depth",
+        "retry_count",
+        "last_error_code"
+      ],
+      "events": [
+        "ota.update_available",
+        "ota.started",
+        "ota.completed",
+        "ota.failed"
+      ],
+      "conditions": [
+        "ota_update_is_available",
+        "route_is_degraded"
+      ],
+      "actions": [
+        "request_ota_update",
+        "reinterview_device"
+      ]
+    },
+    {
+      "id": "bridge-only-or-unsafe-surface",
+      "status": "excluded",
+      "scope": [
+        "all-direct-zigbee-devices"
+      ],
+      "source_refs": [
+        "hue_zigbee",
+        "piphi_zigbee"
+      ],
+      "reason": "Hue Bridge rooms, zones, remote account access, Bridge Pro MotionAware, entertainment streaming, arbitrary cluster writes, network key access, and coordinator administration are outside direct-device profile ownership.",
+      "state": [
+        "zigbee_network_key",
+        "coordinator_backup",
+        "bridge_remote_account",
+        "entertainment_stream_state",
+        "motionaware_area"
+      ],
+      "events": [],
+      "conditions": [],
+      "actions": [
+        "write_arbitrary_cluster",
+        "read_network_key",
+        "reset_coordinator",
+        "open_unbounded_join",
+        "start_entertainment_stream",
+        "configure_motionaware_area"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "id": "hue-direct",
+  "host": "http://piphi-zigbee:8090",
+  "alias": "Direct Hue",
+  "coordinator_token": "change-me",
+  "network_id": "home-zigbee",
+  "actions_enabled": false,
+  "allowlisted_ieee_addresses": []
+}
